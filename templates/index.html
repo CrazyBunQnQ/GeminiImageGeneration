@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Image Editor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Gemini Image Editor</h1>
+        
+        <!-- 拖拽上传区域 -->
+        <div id="upload-area" class="upload-area">
+            <div class="upload-icon">📁</div>
+            <p>Click to upload or drag & drop</p>
+            <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+        </div>
+        
+        <!-- 已上传图片缩略图展示区域 -->
+        <div id="image-preview" class="image-preview"></div>
+        
+        <!-- 输入框和发送按钮 -->
+        <div class="input-container">
+            <input type="text" id="prompt" placeholder="输入您的提示词..." required>
+            <button id="send-btn" type="button">发送</button>
+        </div>
+        
+        <!-- 结果展示区域 -->
+        <div id="result">
+            <div id="result-content"></div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
