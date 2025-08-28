@@ -228,29 +228,54 @@ function displayAIResponse(result) {
     
     const content = document.createElement('div');
     
-    // 显示生成的文本
-    if (result.generated_text && result.generated_text.trim()) {
-        const textDiv = document.createElement('div');
-        textDiv.style.marginBottom = '10px';
-        textDiv.textContent = result.generated_text;
-        content.appendChild(textDiv);
+    // 显示原始提示词
+    if (result.original_prompt) {
+        const promptSection = document.createElement('div');
+        promptSection.style.marginBottom = '15px';
+        promptSection.style.padding = '10px';
+        promptSection.style.backgroundColor = '#f5f5f5';
+        promptSection.style.borderRadius = '6px';
+        promptSection.style.fontSize = '14px';
+        
+        const promptLabel = document.createElement('div');
+        promptLabel.style.fontWeight = 'bold';
+        promptLabel.style.marginBottom = '5px';
+        promptLabel.style.color = '#666';
+        promptLabel.textContent = '原始提示词:';
+        
+        const promptText = document.createElement('div');
+        promptText.textContent = result.original_prompt;
+        
+        promptSection.appendChild(promptLabel);
+        promptSection.appendChild(promptText);
+        content.appendChild(promptSection);
     }
     
-    // 显示生成的图片
-    if (result.generated_images && result.generated_images.length > 0) {
-        const imagesContainer = document.createElement('div');
-        imagesContainer.style.display = 'flex';
-        imagesContainer.style.flexWrap = 'wrap';
-        imagesContainer.style.gap = '10px';
+    // 显示上传的图片
+    if (result.uploaded_images && result.uploaded_images.length > 0) {
+        const uploadedSection = document.createElement('div');
+        uploadedSection.style.marginBottom = '15px';
         
-        result.generated_images.forEach((imageData, index) => {
+        const uploadedLabel = document.createElement('div');
+        uploadedLabel.style.fontWeight = 'bold';
+        uploadedLabel.style.marginBottom = '8px';
+        uploadedLabel.style.color = '#666';
+        uploadedLabel.textContent = `上传的图片 (${result.uploaded_images.length}张):`;
+        
+        const uploadedContainer = document.createElement('div');
+        uploadedContainer.style.display = 'flex';
+        uploadedContainer.style.flexWrap = 'wrap';
+        uploadedContainer.style.gap = '8px';
+        
+        result.uploaded_images.forEach((imageData, index) => {
             const img = document.createElement('img');
             img.src = `data:${imageData.mime_type};base64,${imageData.data}`;
-            img.alt = `Generated Image ${index + 1}`;
-            img.style.maxWidth = '300px';
-            img.style.maxHeight = '300px';
-            img.style.borderRadius = '8px';
+            img.alt = imageData.filename || `Uploaded Image ${index + 1}`;
+            img.style.maxWidth = '120px';
+            img.style.maxHeight = '120px';
+            img.style.borderRadius = '6px';
             img.style.cursor = 'pointer';
+            img.style.border = '2px solid #ddd';
             
             // 点击图片放大查看
             img.onclick = () => {
@@ -258,10 +283,103 @@ function displayAIResponse(result) {
                 newWindow.document.write(`<img src="${img.src}" style="max-width: 100%; max-height: 100vh;">`);
             };
             
-            imagesContainer.appendChild(img);
+            uploadedContainer.appendChild(img);
         });
         
-        content.appendChild(imagesContainer);
+        uploadedSection.appendChild(uploadedLabel);
+        uploadedSection.appendChild(uploadedContainer);
+        content.appendChild(uploadedSection);
+    }
+    
+    // 显示生成的文本
+    if (result.generated_text && result.generated_text.trim()) {
+        const textSection = document.createElement('div');
+        textSection.style.marginBottom = '15px';
+        
+        const textLabel = document.createElement('div');
+        textLabel.style.fontWeight = 'bold';
+        textLabel.style.marginBottom = '8px';
+        textLabel.style.color = '#666';
+        textLabel.textContent = '生成的文本:';
+        
+        const textDiv = document.createElement('div');
+        textDiv.style.padding = '10px';
+        textDiv.style.backgroundColor = '#f9f9f9';
+        textDiv.style.borderRadius = '6px';
+        textDiv.textContent = result.generated_text;
+        
+        textSection.appendChild(textLabel);
+        textSection.appendChild(textDiv);
+        content.appendChild(textSection);
+    }
+    
+    // 显示生成的图片
+    if (result.generated_images && result.generated_images.length > 0) {
+        const generatedSection = document.createElement('div');
+        
+        const generatedLabel = document.createElement('div');
+        generatedLabel.style.fontWeight = 'bold';
+        generatedLabel.style.marginBottom = '8px';
+        generatedLabel.style.color = '#666';
+        generatedLabel.textContent = `生成的图片 (${result.generated_images.length}张):`;
+        
+        const imagesContainer = document.createElement('div');
+        imagesContainer.style.display = 'flex';
+        imagesContainer.style.flexDirection = 'column';
+        imagesContainer.style.gap = '15px';
+        
+        result.generated_images.forEach((imageData, index) => {
+            const imageWrapper = document.createElement('div');
+            imageWrapper.style.border = '1px solid #ddd';
+            imageWrapper.style.borderRadius = '8px';
+            imageWrapper.style.padding = '10px';
+            imageWrapper.style.backgroundColor = '#fff';
+            
+            const img = document.createElement('img');
+            img.src = `data:${imageData.mime_type};base64,${imageData.data}`;
+            img.alt = `Generated Image ${index + 1}`;
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.borderRadius = '6px';
+            img.style.cursor = 'pointer';
+            img.style.display = 'block';
+            img.style.marginBottom = '10px';
+            
+            // 点击图片放大查看
+            img.onclick = () => {
+                const newWindow = window.open();
+                newWindow.document.write(`<img src="${img.src}" style="max-width: 100%; max-height: 100vh;">`);
+            };
+            
+            // 创建操作按钮容器
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.gap = '10px';
+            buttonContainer.style.justifyContent = 'center';
+            
+            // 复制图片按钮
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'action-btn copy-btn';
+            copyBtn.textContent = '复制图片';
+            copyBtn.onclick = () => copyImageToClipboard(imageData);
+            
+            // 下载图片按钮
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'action-btn download-btn';
+            downloadBtn.textContent = '下载图片';
+            downloadBtn.onclick = () => downloadImage(imageData, index);
+            
+            buttonContainer.appendChild(copyBtn);
+            buttonContainer.appendChild(downloadBtn);
+            
+            imageWrapper.appendChild(img);
+            imageWrapper.appendChild(buttonContainer);
+            imagesContainer.appendChild(imageWrapper);
+        });
+        
+        generatedSection.appendChild(generatedLabel);
+        generatedSection.appendChild(imagesContainer);
+        content.appendChild(generatedSection);
     }
     
     // 如果既没有文本也没有图片
@@ -313,6 +431,89 @@ document.addEventListener('DOMContentLoaded', () => {
     initEventListeners();
     updateSendButtonState();
 });
+
+// 复制图片到剪贴板
+async function copyImageToClipboard(imageData) {
+    try {
+        // 将base64转换为blob
+        const response = await fetch(`data:${imageData.mime_type};base64,${imageData.data}`);
+        const blob = await response.blob();
+        
+        // 复制到剪贴板
+        await navigator.clipboard.write([
+            new ClipboardItem({ [imageData.mime_type]: blob })
+        ]);
+        
+        // 显示成功提示
+        showToast('图片已复制到剪贴板');
+    } catch (error) {
+        console.error('复制失败:', error);
+        showToast('复制失败，请手动保存图片', 'error');
+    }
+}
+
+// 下载图片
+function downloadImage(imageData, index) {
+    try {
+        const link = document.createElement('a');
+        link.href = `data:${imageData.mime_type};base64,${imageData.data}`;
+        
+        // 生成文件名
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+        const extension = imageData.mime_type.split('/')[1] || 'png';
+        link.download = imageData.filename || `generated_image_${timestamp}_${index + 1}.${extension}`;
+        
+        // 触发下载
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('图片下载已开始');
+    } catch (error) {
+        console.error('下载失败:', error);
+        showToast('下载失败，请手动保存图片', 'error');
+    }
+}
+
+// 显示提示消息
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.padding = '12px 20px';
+    toast.style.borderRadius = '6px';
+    toast.style.color = 'white';
+    toast.style.fontSize = '14px';
+    toast.style.zIndex = '10000';
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s ease';
+    
+    if (type === 'success') {
+        toast.style.backgroundColor = '#4caf50';
+    } else if (type === 'error') {
+        toast.style.backgroundColor = '#f44336';
+    }
+    
+    document.body.appendChild(toast);
+    
+    // 显示动画
+    setTimeout(() => {
+        toast.style.opacity = '1';
+    }, 100);
+    
+    // 自动隐藏
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
 
 // 防止页面默认的拖拽行为
 document.addEventListener('dragover', (e) => e.preventDefault());
