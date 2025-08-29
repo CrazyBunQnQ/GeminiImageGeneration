@@ -125,15 +125,64 @@ def generate():
 
 @app.route('/optimize_prompt', methods=['POST'])
 def optimize_prompt():
-    if 'prompt' not in request.json:
-        return jsonify({'error': 'No prompt provided'}), 400
-    
-    original_prompt = request.json['prompt']
+    # 支持两种请求格式：JSON和form-data
+    if request.is_json:
+        # JSON格式请求（无图片）
+        if 'prompt' not in request.json:
+            return jsonify({'error': 'No prompt provided'}), 400
+        original_prompt = request.json['prompt']
+        images = []
+    else:
+        # form-data格式请求（可能包含图片）
+        if 'prompt' not in request.form:
+            return jsonify({'error': 'No prompt provided'}), 400
+        original_prompt = request.form['prompt']
+        
+        # 获取上传的图片文件
+        image_files = request.files.getlist('images') if 'images' in request.files else []
+        images = []
+        
+        for image_file in image_files:
+            if image_file.filename:  # 确保文件不为空
+                try:
+                    # 读取图片数据并转换为base64
+                    image_data = image_file.read()
+                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+                    
+                    # 获取图片的MIME类型
+                    mime_type = image_file.content_type or 'image/jpeg'
+                    
+                    images.append({
+                        'type': 'image_url',
+                        'image_url': {
+                            'url': f'data:{mime_type};base64,{image_base64}'
+                        }
+                    })
+                except Exception as e:
+                    return jsonify({'error': f'Invalid image file: {e}'}), 400
     
     if not OPENAI_API_KEY:
         return jsonify({'error': 'OpenAI API key not configured'}), 500
     
     try:
+        # 构建用户消息内容
+        user_content = []
+        
+        # 如果有图片，先添加图片
+        if images:
+            user_content.extend(images)
+            # 有图片时的提示词优化指令
+            user_content.append({
+                'type': 'text',
+                'text': f'结合这些图片内容，优化这个图像生成提示词：{original_prompt}'
+            })
+        else:
+            # 无图片时的提示词优化指令
+            user_content.append({
+                'type': 'text',
+                'text': f'请优化这个图像生成提示词：{original_prompt}'
+            })
+        
         # 构建优化提示词的请求
         optimization_request = {
             "model": OPENAI_MODEL,
@@ -144,7 +193,7 @@ def optimize_prompt():
                 },
                 {
                     "role": "user",
-                    "content": f"请优化这个图像生成提示词：{original_prompt}"
+                    "content": user_content
                 }
             ],
             "max_tokens": 500,
@@ -164,7 +213,8 @@ def optimize_prompt():
             optimized_prompt = result['choices'][0]['message']['content'].strip()
             return jsonify({
                 'original_prompt': original_prompt,
-                'optimized_prompt': optimized_prompt
+                'optimized_prompt': optimized_prompt,
+                'has_images': len(images) > 0
             })
         else:
             return jsonify({'error': f'OpenAI API error: {response.status_code} - {response.text}'}), 500

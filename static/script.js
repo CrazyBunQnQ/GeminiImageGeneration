@@ -442,14 +442,35 @@ async function handleOptimize() {
     optimizeBtn.textContent = '优化中...';
     
     try {
-        const response = await fetch('/optimize_prompt', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ prompt: prompt })
-        });
+        let requestOptions;
         
+        // 检查是否有上传的图片
+        if (uploadedFiles.length > 0) {
+            // 有图片时使用FormData格式
+            const formData = new FormData();
+            formData.append('prompt', prompt);
+            
+            // 添加所有上传的图片
+            uploadedFiles.forEach(file => {
+                formData.append('images', file);
+            });
+            
+            requestOptions = {
+                method: 'POST',
+                body: formData
+            };
+        } else {
+            // 无图片时使用JSON格式
+            requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ prompt: prompt })
+            };
+        }
+        
+        const response = await fetch('/optimize_prompt', requestOptions);
         const result = await response.json();
         
         if (response.ok) {
@@ -457,9 +478,10 @@ async function handleOptimize() {
             promptInput.value = result.optimized_prompt;
             
             // 显示优化结果
-            displayOptimizationResult(result.original_prompt, result.optimized_prompt);
+            displayOptimizationResult(result.original_prompt, result.optimized_prompt, result.has_images);
             
-            showToast('提示词优化成功');
+            const successMessage = result.has_images ? '提示词优化成功（已结合图片内容）' : '提示词优化成功';
+            showToast(successMessage);
         } else {
             displayError(result.error || '优化失败');
             showToast('提示词优化失败', 'error');
@@ -476,7 +498,7 @@ async function handleOptimize() {
 }
 
 // 显示优化结果
-function displayOptimizationResult(originalPrompt, optimizedPrompt) {
+function displayOptimizationResult(originalPrompt, optimizedPrompt, hasImages = false) {
     const optimizationResult = document.createElement('div');
     optimizationResult.className = 'ai-response';
     optimizationResult.style.borderLeftColor = '#2196f3';
@@ -485,7 +507,7 @@ function displayOptimizationResult(originalPrompt, optimizedPrompt) {
     const label = document.createElement('div');
     label.className = 'label';
     label.style.color = '#1976d2';
-    label.textContent = '提示词优化:';
+    label.textContent = hasImages ? '提示词优化 (结合图片内容):' : '提示词优化:';
     
     const content = document.createElement('div');
     
