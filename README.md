@@ -29,14 +29,22 @@ Gemini Image Generator 是一个现代化的 Web 应用程序，利用 Google �
 - **响应式设计**：适配桌面和移动设备
 - **实时反馈**：操作状态提示和错误处理
 
+### 🤖 AI 提示词优化
+- **智能优化**：基于 OpenAI 模型优化提示词描述
+- **图片结合**：支持结合上传图片内容进行提示词优化
+- **一键应用**：优化后的提示词自动填入输入框
+- **对比显示**：清晰展示原始提示词与优化后提示词的差异
+
 ## 🛠️ 技术栈
 
 ### 后端
 - **Python 3.8+**
 - **Flask** - Web 框架
 - **Google GenAI SDK** - Gemini API 客户端
+- **OpenAI API** - 提示词优化服务
 - **Pillow** - 图片处理库
 - **python-dotenv** - 环境变量管理
+- **Requests** - HTTP 请求库
 
 ### 前端
 - **HTML5** - 页面结构
@@ -54,6 +62,7 @@ Gemini Image Generator 是一个现代化的 Web 应用程序，利用 Google �
 
 ### API 要求
 - **Google Gemini API Key**：需要有效的 Gemini API 密钥
+- **OpenAI API Key**：需要有效的 OpenAI API 密钥（用于提示词优化功能）
 - **网络连接**：稳定的互联网连接用于 API 调用
 
 ## 🚀 快速开始
@@ -75,9 +84,12 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，添加您的 Gemini API 密钥：
+编辑 `.env` 文件，添加您的 API 密钥：
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_API_URL=https://api.openai.com/v1/chat/completions
+OPENAI_MODEL=gpt-3.5-turbo
 ```
 
 ### 4. 启动应用
@@ -96,9 +108,13 @@ python app.py
    - 点击上传区域选择文件
    - 直接拖拽图片到上传区域
    - 使用 Ctrl+V 粘贴剪贴板中的图片
-3. **生成图片**：点击发送按钮或按回车键
-4. **查看结果**：生成的图片将显示在聊天区域
-5. **操作图片**：
+3. **优化提示词**（可选）：
+   - 点击"优化提示词"按钮使用 AI 优化您的描述
+   - 如果上传了图片，AI 会结合图片内容进行优化
+   - 优化后的提示词会自动填入输入框
+4. **生成图片**：点击发送按钮或按回车键
+5. **查看结果**：生成的图片将显示在聊天区域
+6. **操作图片**：
    - 点击图片可放大查看
    - 使用复制按钮复制到剪贴板
    - 使用下载按钮保存到本地
@@ -141,6 +157,9 @@ GeminiImage/
 
 ### 环境变量
 - `GEMINI_API_KEY`：Google Gemini API 密钥（必需）
+- `OPENAI_API_KEY`：OpenAI API 密钥（提示词优化功能必需）
+- `OPENAI_API_URL`：OpenAI API 端点 URL（可选，默认为官方 API）
+- `OPENAI_MODEL`：使用的 OpenAI 模型（可选，默认为 gpt-3.5-turbo）
 
 ### 应用配置
 - **调试模式**：默认开启，生产环境请关闭
@@ -182,6 +201,12 @@ GeminiImage/
 - 确认浏览器支持 Clipboard API
 - 检查是否为 HTTPS 连接（本地开发除外）
 - 验证浏览器权限设置
+
+**Q: 提示词优化功能失败**
+- 检查 OpenAI API 密钥是否正确配置
+- 确认 API 配额是否充足
+- 验证网络连接和 API 端点 URL
+- 检查上传的图片格式是否支持（如有图片）
 
 ### 日志查看
 应用运行时会在控制台输出详细日志，包括：
