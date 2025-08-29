@@ -7,6 +7,7 @@ const fileInput = document.getElementById('file-input');
 const imagePreview = document.getElementById('image-preview');
 const promptInput = document.getElementById('prompt');
 const sendBtn = document.getElementById('send-btn');
+const optimizeBtn = document.getElementById('optimize-btn');
 const resultContent = document.getElementById('result-content');
 
 // 初始化事件监听器
@@ -29,6 +30,9 @@ function initEventListeners() {
 
     // 发送按钮事件
     sendBtn.addEventListener('click', handleSend);
+
+    // 优化按钮事件
+    optimizeBtn.addEventListener('click', handleOptimize);
 
     // 回车键发送
     promptInput.addEventListener('keypress', (e) => {
@@ -137,6 +141,9 @@ function updateSendButtonState() {
     
     // 只要有提示词就可以发送（支持 Text-to-Image 模式）
     sendBtn.disabled = !hasPrompt;
+    
+    // 优化按钮只有在有提示词时才可用
+    optimizeBtn.disabled = !hasPrompt;
 }
 
 // 处理发送
@@ -421,6 +428,113 @@ function clearInputs() {
     uploadedFiles = [];
     imagePreview.innerHTML = '';
     updateSendButtonState();
+}
+
+// 处理提示词优化
+async function handleOptimize() {
+    const prompt = promptInput.value.trim();
+    if (!prompt) {
+        return;
+    }
+    
+    // 禁用优化按钮
+    optimizeBtn.disabled = true;
+    optimizeBtn.textContent = '优化中...';
+    
+    try {
+        const response = await fetch('/optimize_prompt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ prompt: prompt })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            // 将优化后的提示词填入输入框
+            promptInput.value = result.optimized_prompt;
+            
+            // 显示优化结果
+            displayOptimizationResult(result.original_prompt, result.optimized_prompt);
+            
+            showToast('提示词优化成功');
+        } else {
+            displayError(result.error || '优化失败');
+            showToast('提示词优化失败', 'error');
+        }
+    } catch (error) {
+        displayError('网络错误: ' + error.message);
+        showToast('网络错误，请重试', 'error');
+    } finally {
+        // 恢复优化按钮
+        optimizeBtn.disabled = false;
+        optimizeBtn.textContent = '优化提示词';
+        updateSendButtonState();
+    }
+}
+
+// 显示优化结果
+function displayOptimizationResult(originalPrompt, optimizedPrompt) {
+    const optimizationResult = document.createElement('div');
+    optimizationResult.className = 'ai-response';
+    optimizationResult.style.borderLeftColor = '#2196f3';
+    optimizationResult.style.backgroundColor = '#e3f2fd';
+    
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.style.color = '#1976d2';
+    label.textContent = '提示词优化:';
+    
+    const content = document.createElement('div');
+    
+    // 原始提示词
+    const originalSection = document.createElement('div');
+    originalSection.style.marginBottom = '15px';
+    
+    const originalLabel = document.createElement('div');
+    originalLabel.style.fontWeight = 'bold';
+    originalLabel.style.marginBottom = '5px';
+    originalLabel.style.color = '#666';
+    originalLabel.textContent = '原始提示词:';
+    
+    const originalText = document.createElement('div');
+    originalText.style.padding = '8px';
+    originalText.style.backgroundColor = '#f5f5f5';
+    originalText.style.borderRadius = '4px';
+    originalText.style.fontSize = '14px';
+    originalText.textContent = originalPrompt;
+    
+    originalSection.appendChild(originalLabel);
+    originalSection.appendChild(originalText);
+    
+    // 优化后提示词
+    const optimizedSection = document.createElement('div');
+    
+    const optimizedLabel = document.createElement('div');
+    optimizedLabel.style.fontWeight = 'bold';
+    optimizedLabel.style.marginBottom = '5px';
+    optimizedLabel.style.color = '#666';
+    optimizedLabel.textContent = '优化后提示词:';
+    
+    const optimizedText = document.createElement('div');
+    optimizedText.style.padding = '8px';
+    optimizedText.style.backgroundColor = '#e8f5e8';
+    optimizedText.style.borderRadius = '4px';
+    optimizedText.style.fontSize = '14px';
+    optimizedText.textContent = optimizedPrompt;
+    
+    optimizedSection.appendChild(optimizedLabel);
+    optimizedSection.appendChild(optimizedText);
+    
+    content.appendChild(originalSection);
+    content.appendChild(optimizedSection);
+    
+    optimizationResult.appendChild(label);
+    optimizationResult.appendChild(content);
+    resultContent.appendChild(optimizationResult);
+    resultContent.scrollTop = resultContent.scrollHeight;
 }
 
 // 监听输入框变化

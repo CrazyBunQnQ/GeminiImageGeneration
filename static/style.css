@@ -137,7 +137,6 @@ h1 {
 }
 
 .input-container button {
-    background-color: #4CAF50;
     color: white;
     padding: 12px 24px;
     border: none;
@@ -145,17 +144,42 @@ h1 {
     cursor: pointer;
     font-size: 16px;
     font-weight: 500;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
     white-space: nowrap;
 }
 
-.input-container button:hover {
+/* 发送按钮样式 */
+#send-btn {
+    background-color: #4CAF50;
+}
+
+#send-btn:hover {
     background-color: #45a049;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* 优化按钮样式 */
+#optimize-btn {
+    background-color: #2196F3;
+}
+
+#optimize-btn:hover {
+    background-color: #1976D2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 
 .input-container button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.input-container button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* 结果展示区域 */
@@ -277,10 +301,15 @@ h1 {
     
     .input-container {
         flex-direction: column;
+        gap: 8px;
     }
     
     .input-container button {
-        align-self: flex-end;
+        align-self: stretch;
         min-width: 80px;
+    }
+    
+    .input-container input[type="text"] {
+        margin-bottom: 0;
     }
 }
